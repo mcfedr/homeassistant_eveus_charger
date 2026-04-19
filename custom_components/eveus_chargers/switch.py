@@ -8,25 +8,27 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 SWITCH_DEFINITIONS = [
-    ("groundCtrl", "evse_energy_star_control_pe"),
-    ("restrictedMode", "evse_energy_star_restricted_mode"),
+    ("groundCtrl", "eveus_chargers_control_pe"),
+    ("restrictedMode", "eveus_chargers_restricted_mode"),
 ]
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
-        EVSESwitch(coordinator, entry, key, trans_key)
+        EveusSwitch(coordinator, entry, key, trans_key)
         for key, trans_key in SWITCH_DEFINITIONS
     ]
 
-    entities.append(EVSEScheduleSwitch(coordinator, entry))
-    entities.append(EVSESimpleSwitch(coordinator, entry, "oneCharge", "evse_energy_star_one_charge"))
-    entities.append(EVSESimpleSwitch(coordinator, entry, "aiMode", "evse_energy_star_adaptive_mode"))
+    entities.append(EveusScheduleSwitch(coordinator, entry))
+    entities.append(EveusSimpleSwitch(coordinator, entry, "oneCharge", "eveus_chargers_one_charge"))
+    entities.append(EveusSimpleSwitch(coordinator, entry, "aiMode", "eveus_chargers_adaptive_mode", state_key="aiStatus"))
+    entities.append(EveusSimpleSwitch(coordinator, entry, "evseEnabled", "eveus_chargers_charger_enabled", inverted=True))
+    entities.append(EveusSimpleSwitch(coordinator, entry, "suspendLimits", "eveus_chargers_suspend_limits", enabled_default=False))
 
     async_add_entities(entities)
 
-class EVSESwitch(SwitchEntity):
+class EveusSwitch(SwitchEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, key, translation_key):
         self.coordinator = coordinator
         self.config_entry = config_entry
@@ -70,7 +72,7 @@ class EVSESwitch(SwitchEntity):
             await session.post(f"http://{self._host}/pageEvent", data=payload, headers=headers)
             await self.coordinator.async_request_refresh()
         except Exception as err:
-            _LOGGER.error("switch.py → помилка запиту %s → %s", self._key, repr(err))
+            _LOGGER.error("switch.py → request error %s → %s", self._key, repr(err))
 
     async def _set_current_if_needed(self, target, only_if_high=False, only_if_low=False):
         current = float(self.coordinator.data.get("currentSet", 32))
@@ -86,20 +88,14 @@ class EVSESwitch(SwitchEntity):
 
     @property
     def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
-            "name": self.config_entry.data.get('device_name', 'Eveus Pro'),
-            "manufacturer": "Energy Star",
-            "model": "EVSE",
-            "sw_version": self.coordinator.data.get("fwVersion")
-        }
+        return self.coordinator.device_info
 
-class EVSEScheduleSwitch(SwitchEntity):
+class EveusScheduleSwitch(SwitchEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry):
         self.coordinator = coordinator
         self.config_entry = config_entry
         self._host = coordinator.host
-        self._attr_translation_key = "evse_energy_star_schedule"
+        self._attr_translation_key = "eveus_chargers_schedule"
         self._attr_unique_id = f"schedule_{config_entry.entry_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
@@ -122,7 +118,7 @@ class EVSEScheduleSwitch(SwitchEntity):
     async def _send(self, state: bool):
         data = self.coordinator.data
         if not data:
-            _LOGGER.warning("switch.py → coordinator.data порожній, розклад не оновлено")
+            _LOGGER.warning("switch.py → coordinator.data empty, schedule not updated")
             return
 
         payload = (
@@ -138,28 +134,25 @@ class EVSEScheduleSwitch(SwitchEntity):
             })
             await self.coordinator.async_request_refresh()
         except Exception as err:
-            _LOGGER.error("switch.py → помилка оновлення розкладу → %s", repr(err))
+            _LOGGER.error("switch.py → schedule update error → %s", repr(err))
 
     @property
     def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
-            "name": self.config_entry.data.get('device_name', 'Eveus Pro'),
-            "manufacturer": "Energy Star",
-            "model": "EVSE",
-            "sw_version": self.coordinator.data.get("fwVersion")
-        }
+        return self.coordinator.device_info
 
-class EVSESimpleSwitch(SwitchEntity):
-    def __init__(self, coordinator, config_entry: ConfigEntry, key, translation_key):
+class EveusSimpleSwitch(SwitchEntity):
+    def __init__(self, coordinator, config_entry: ConfigEntry, key, translation_key, *, state_key=None, inverted=False, enabled_default=True):
         self.coordinator = coordinator
         self.config_entry = config_entry
         self._host = coordinator.host
         self._key = key
+        self._state_key = state_key or key
+        self._inverted = inverted
         self._attr_translation_key = translation_key
         self._attr_unique_id = f"{translation_key}_{config_entry.entry_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
+        self._attr_entity_registry_enabled_default = enabled_default
 
     @property
     def available(self):
@@ -167,11 +160,9 @@ class EVSESimpleSwitch(SwitchEntity):
 
     @property
     def is_on(self):
-        if self._key == "aiMode":
-            val = self.coordinator.data.get("aiStatus")
-        else:
-            val = self.coordinator.data.get(self._key)
-        return str(val).lower() in ["true", "1"]
+        val = self.coordinator.data.get(self._state_key)
+        raw_on = str(val).lower() in ["true", "1"]
+        return not raw_on if self._inverted else raw_on
 
     async def async_turn_on(self):
         await self._send(True)
@@ -180,7 +171,9 @@ class EVSESimpleSwitch(SwitchEntity):
         await self._send(False)
 
     async def _send(self, state: bool):
-        payload = f"{self._key}={'1' if state else '0'}"
+        # For inverted switches, flip the value sent to the device
+        device_state = not state if self._inverted else state
+        payload = f"{self._key}={'1' if device_state else '0'}"
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
             "pageEvent": self._key
@@ -190,14 +183,8 @@ class EVSESimpleSwitch(SwitchEntity):
             await session.post(f"http://{self._host}/pageEvent", data=payload, headers=headers)
             await self.coordinator.async_request_refresh()
         except Exception as err:
-            _LOGGER.error("switch.py → помилка запиту %s → %s", self._key, repr(err))
+            _LOGGER.error("switch.py → request error %s → %s", self._key, repr(err))
 
     @property
     def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
-            "name": self.config_entry.data.get('device_name', 'Eveus Pro'),
-            "manufacturer": "Energy Star",
-            "model": "EVSE",
-            "sw_version": self.coordinator.data.get("fwVersion")
-        }
+        return self.coordinator.device_info

@@ -1,89 +1,149 @@
-# ⚡ EVSE Energy Star
+# Eveus Chargers
 
-Інтеграція для [Home Assistant](https://www.home-assistant.io/), яка забезпечує локальне керування зарядними станціями **Energy Star Pro** та **Eveus Pro** через їхній вбудований веб-інтерфейс (JSON API).
+Home Assistant integration for local control of **Energy Star Pro** and **Eveus Pro** EV charging stations via their built-in web interface (JSON API).
 
-![Logo](https://raw.githubusercontent.com/V-Plum/evse_energy_star/main/custom_components/evse_energy_star/icon.png)
-
----
-
-## 🔧 Можливості
-
-- Відображення статусу зарядної станції
-- Сенсори потужності, напруги, струму, температури
-- Контроль струму заряду, запуск/зупинка зарядки
-- Планування зарядки, таймери
-- Підтримка синхронізації часу
-- Повна локальна робота без хмари
-- UI-конфігурація через Config Flow
-- Підтримка **Energy Star Pro** і **Eveus Pro**
+![Logo](brand/icon.png)
 
 ---
 
-## 🚀 Встановлення
+## Features
 
-### Варіант 1: через HACS (рекомендовано)
+- Real-time sensors: power, voltage, current, temperature, energy, battery voltage
+- Charging status with all 22 device states (ready, charging, waiting, error conditions, limits, etc.)
+- Car connection detection (pilot signal)
+- Control charging current (full range from device min to max)
+- Start/stop charging, enable/disable charger
+- Scheduled charging with start/stop times
+- Adaptive mode and voltage threshold control
+- Suspend limits toggle
+- Time synchronization
+- Configurable polling rate (1–60 seconds)
+- Support for 1-phase and 3-phase configurations
+- Full local operation — no cloud dependency
+- UI configuration via Config Flow
+- English and Ukrainian translations
 
-1. Відкрий HACS → "Інтеграції" → "Користувацький репозиторій"
-2. Встав:
+---
+
+## Installation
+
+### Option 1: via HACS (recommended)
+
+1. Open HACS -> "Integrations" -> "Custom repositories"
+2. Add repository:
    ```
    https://github.com/V-Plum/evse_energy_star
    ```
-3. Вибери тип: `Integration`
-4. Встанови інтеграцію
-5. Перезапусти Home Assistant
+3. Select category: `Integration`
+4. Install the integration
+5. Restart Home Assistant
 
-### Варіант 2: вручну
+### Option 2: Manual
 
-1. Скачай ZIP архів або клонуй репозиторій
-2. Скопіюй папку `evse_energy_star` у:
+1. Download ZIP archive or clone the repository
+2. Copy the `eveus_chargers` folder to:
    ```
-   config/custom_components/evse_energy_star
+   config/custom_components/eveus_chargers
    ```
-3. Перезапусти Home Assistant
+3. Restart Home Assistant
 
 ---
 
-## ⚙️ Налаштування
+## Configuration
 
-1. Перейдіть у `Налаштування` → `Пристрої та служби` → `Додати інтеграцію`
-2. Знайдіть "EVSE Energy Star"
-3. Введіть:
-   - IP-адресу зарядної станції
-   - Ім’я користувача
-   - Пароль
-
----
-
-## 🖥️ Платформи
-
-- `sensor` — станція, напруга, струм, потужність, температура, енергія
-- `switch` — перемикач режиму, заземлення, розклад
-- `number` — обмеження струму/напруги
-- `button` — ручний запуск зарядки, синхронізація часу
-- `select` — вибір часової зони
+1. Go to `Settings` -> `Devices & Services` -> `Add Integration`
+2. Search for "Eveus Chargers"
+3. Enter:
+   - Device name
+   - Charging station IP address
+   - Username (optional)
+   - Password (optional)
+   - Device type (single-phase or three-phase)
 
 ---
 
-## 📷 Скриншоти
+## Entities
 
-![Dashboard example](https://raw.githubusercontent.com/V-Plum/evse_energy_star/main/images/dashboard_example.png)
+### Sensors
+
+| Entity | Description | Unit |
+|---|---|---|
+| Charging Status | Device state (22 states including charging, ready, error conditions, limits) | enum |
+| Set Current | Currently configured charging current | A |
+| Phase 1 Current | Measured current (phase 1) | A |
+| Phase 1 Voltage | Measured voltage (phase 1) | V |
+| Power | Active power | W |
+| Box Temperature | Internal temperature | °C |
+| Socket Temperature | Plug/socket temperature | °C |
+| Leakage | Leakage current | mA |
+| Session Energy | Energy consumed in current session | kWh |
+| Session Duration | Duration of current session | HH:MM:SS |
+| Total Energy | Lifetime energy counter | kWh |
+| Car Connected | Pilot signal — car connection status | enum |
+| System Time | Device clock (disabled by default) | — |
+| Battery Voltage | Internal battery (disabled by default) | V |
+| Ground Status | Ground connection indicator (disabled by default) | — |
+
+Three-phase devices add: Phase 2/3 Current and Phase 2/3 Voltage.
+
+### Switches
+
+| Entity | Description |
+|---|---|
+| Charger Enabled | Enable/disable charging (inverted evseEnabled) |
+| Ground Control | Ground fault protection |
+| 16A Mode | Restrict to 16A domestic socket mode |
+| Scheduled Charging | Enable timer-based charging |
+| One-Time Charge | Single charge session mode |
+| Adaptive Mode | Voltage-adaptive charging |
+| Suspend Limits | Temporarily disable limits (disabled by default) |
+
+### Numbers
+
+| Entity | Range | Description |
+|---|---|---|
+| Current Limit | minCurrent – curDesign (device-reported) | Charging current setpoint |
+| Adaptive Voltage | 180–240 V | Undervoltage threshold for adaptive mode |
+
+### Buttons
+
+| Entity | Description |
+|---|---|
+| Sync Time | Synchronize device clock from HA |
+| Start Charging | Reset limits/schedules and begin charging |
+
+### Selects
+
+| Entity | Description |
+|---|---|
+| Time Zone | Device timezone offset (-12 to +12) |
+| Update Rate | Polling interval (1, 2, 5, 10, 15, 30, 60 seconds) |
+
+### Text
+
+| Entity | Description |
+|---|---|
+| Start Time | Schedule start time (HH:MM) |
+| Stop Time | Schedule stop time (HH:MM) |
 
 ---
 
-## 🛠️ Вимоги
+## Requirements
 
-- Home Assistant 2023.0 або новіше
-- Зарядна станція Energy Star Pro або Eveus Pro з активним web-інтерфейсом
-
----
-
-## 👤 Автор
-
-**[@V-Plum](https://github.com/V-Plum)**  
-Pull requests, issues та зірочки — вітаються!
+- Home Assistant 2023.0 or newer
+- Energy Star Pro or Eveus Pro charging station with active web interface
 
 ---
 
-## 📝 Ліцензія
+## Acknowledgments
+
+Original integration by **[@V-Plum](https://github.com/V-Plum/evse_energy_star)**.
+Improvements informed by the fork by **[@d-primikirio](https://github.com/d-primikirio/eveus_hacs)**.
+
+Pull requests, issues, and stars are welcome!
+
+---
+
+## License
 
 [MIT License](LICENSE)

@@ -7,7 +7,7 @@ DEVICE_TYPES = {
     "3_phase": "3_phase"
 }
 
-class EVSEEnergyStarOptionsFlow(config_entries.OptionsFlow):
+class EveusOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry):
         self.config_entry = config_entry
 
@@ -31,4 +31,4 @@ class EVSEEnergyStarOptionsFlow(config_entries.OptionsFlow):
         )
 
 def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-    return EVSEEnergyStarOptionsFlow(config_entry)
+    return EveusOptionsFlow(config_entry)

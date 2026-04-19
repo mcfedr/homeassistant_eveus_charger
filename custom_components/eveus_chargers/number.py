@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 NUMBER_DEFINITIONS = [
     {
         "key": "currentSet",
-        "id": "evse_energy_star_current_limit",
+        "id": "eveus_chargers_current_limit",
         "icon": "mdi:current-dc",
         "min": 6,
         "max": 32,
@@ -21,7 +21,7 @@ NUMBER_DEFINITIONS = [
     },
     {
         "key": "aiVoltage",
-        "id": "evse_energy_star_voltage_adaptive",
+        "id": "eveus_chargers_voltage_adaptive",
         "icon": "mdi:flash-outline",
         "min": 180,
         "max": 240,
@@ -34,12 +34,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
-        EVSENumber(coordinator, entry, definition)
+        EveusNumber(coordinator, entry, definition)
         for definition in NUMBER_DEFINITIONS
     ]
     async_add_entities(entities)
 
-class EVSENumber(CoordinatorEntity, NumberEntity):
+class EveusNumber(CoordinatorEntity, NumberEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, config):
         super().__init__(coordinator)
         self.coordinator = coordinator
@@ -54,7 +54,6 @@ class EVSENumber(CoordinatorEntity, NumberEntity):
         self._attr_native_step = config["step"]
         self._attr_native_min_value = config["min"]
         self._attr_unique_id = f"{self._translation_key}_{config_entry.entry_id}"
-        self._restricted_mode = False
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
 
@@ -68,17 +67,19 @@ class EVSENumber(CoordinatorEntity, NumberEntity):
         return float(value) if value is not None else None
 
     @property
+    def native_min_value(self):
+        if self._key == "currentSet":
+            return float(self.coordinator.data.get("minCurrent", self._config["min"]))
+        return self._config["min"]
+
+    @property
     def native_max_value(self):
         if self._key == "currentSet":
-            current = self.coordinator.data.get("currentSet")
-            if current is not None:
-                self._restricted_mode = float(current) <= 16
-            design_max = float(self.coordinator.data.get("curDesign", 32))
-            return 16 if self._restricted_mode else design_max
+            return float(self.coordinator.data.get("curDesign", self._config["max"]))
         return self._config["max"]
 
     async def async_set_native_value(self, value: float):
-        payload = f"{self._key}={value}"
+        payload = f"{self._key}={int(value)}"
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
             "pageEvent": self._key
@@ -94,14 +95,8 @@ class EVSENumber(CoordinatorEntity, NumberEntity):
             await self.coordinator.async_request_refresh()
             self.async_write_ha_state()
         except Exception as err:
-            _LOGGER.error("number.py → помилка запису %s = %s → %s", self._key, value, repr(err))
+            _LOGGER.error("number.py → error writing %s = %s → %s", self._key, value, repr(err))
 
     @property
     def device_info(self):
-        return {
-            "identifiers": {(DOMAIN, self.config_entry.entry_id)},
-            "name": self.config_entry.data.get("device_name", "Eveus Pro"),
-            "manufacturer": "Energy Star",
-            "model": "EVSE",
-            "sw_version": self.coordinator.data.get("fwVersion")
-        }
+        return self.coordinator.device_info

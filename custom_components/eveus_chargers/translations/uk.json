@@ -1,0 +1,196 @@
+{
+  "config": {
+    "title": "Eveus Chargers",
+    "error": {
+      "required": "Обов'язкове поле",
+      "connection": "Помилка підключення",
+      "invalid_ip": "Неправильна IP-адреса"
+    },
+    "step": {
+      "user": {
+        "title": "Підключення зарядки",
+        "description": "Введіть назву пристрою, IP-адресу, логін та пароль для підключення до зарядної станції.",
+        "data": {
+          "device_name": "Назва пристрою",
+          "host": "IP-адреса",
+          "username": "Ім'я користувача",
+          "password": "Пароль",
+          "device_type": "Тип пристрою"
+        },
+        "error": {
+          "connection": "Помилка підключення",
+          "invalid_ip": "Неправильна IP-адреса",
+          "required": "Обов'язкове поле"
+        }
+      }
+    }
+  },
+  "options": {
+    "title": "Налаштування зарядки",
+    "step": {
+      "init": {
+        "title": "Оновлення зарядки",
+        "description": "Оновлення конфігурації зарядного пристрою",
+        "data": {
+          "device_name": "Назва пристрою",
+          "host": "IP-адреса",
+          "username": "Ім'я користувача",
+          "password": "Пароль",
+          "device_type": "Тип пристрою"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "eveus_chargers_status": {
+        "name": "Статус зарядки",
+        "state": {
+          "no_data": "Нема данних",
+          "ready": "Готовність",
+          "waiting": "Очікування",
+          "charging": "Заряд",
+          "leakage": "Витік струму",
+          "no_ground": "Нема заземлення",
+          "overtemperature_system": "Перегрів системи",
+          "overtemperature_plug": "Перегрів вилки",
+          "overtemperature_relay": "Перегрів реле",
+          "overcurrent": "Перевищення струму",
+          "overvoltage": "Перевищення напруги",
+          "undervoltage": "Низька напруга",
+          "limited_by_time": "Обмежено лімітом часу",
+          "limited_by_energy": "Обмежено лімітом енергії",
+          "limited_by_cost": "Обмежено лімітом вартості",
+          "limited_by_schedule_1": "Обмежено розкладом 1",
+          "limited_by_schedule_2": "Обмежено розкладом 2",
+          "disabled_by_user": "Обмежено користувачем",
+          "relay_error": "Помилка реле",
+          "disabled_by_adaptive": "Обмежено адаптивним",
+          "unknown": "Невідомо"
+        }
+      },
+      "eveus_chargers_current_set": {
+        "name": "Струм (встановлений)"
+      },
+      "eveus_chargers_current_phase_1": {
+        "name": "Струм фаза 1"
+      },
+      "eveus_chargers_voltage_phase_1": {
+        "name": "Напруга фаза 1"
+      },
+      "eveus_chargers_power": {
+        "name": "Потужність"
+      },
+      "eveus_chargers_temperature_box": {
+        "name": "Темп. корпусу"
+      },
+      "eveus_chargers_temperature_socket": {
+        "name": "Темп. роз'єму"
+      },
+      "eveus_chargers_leakage": {
+        "name": "Витік"
+      },
+      "eveus_chargers_session_energy": {
+        "name": "Енергія сесії"
+      },
+      "eveus_chargers_session_time": {
+        "name": "Час сесії"
+      },
+      "eveus_chargers_total_energy": {
+        "name": "Загальна енергія"
+      },
+      "eveus_chargers_system_time": {
+        "name": "Системний час"
+      },
+      "eveus_chargers_battery_voltage": {
+        "name": "Напруга батареї"
+      },
+      "eveus_chargers_ground_status": {
+        "name": "Заземлення"
+      },
+      "eveus_chargers_car_connected": {
+        "name": "Підключення до авто",
+        "state": {
+          "connected": "Так",
+          "disconnected": "Ні",
+          "unknown": "Невідомо"
+        }
+      },
+      "eveus_chargers_current_phase_2": {
+        "name": "Струм фаза 2"
+      },
+      "eveus_chargers_current_phase_3": {
+        "name": "Струм фаза 3"
+      },
+      "eveus_chargers_voltage_phase_2": {
+        "name": "Напруга фаза 2"
+      },
+      "eveus_chargers_voltage_phase_3": {
+        "name": "Напруга фаза 3"
+      }
+    },
+    "number": {
+      "eveus_chargers_current_limit": {
+        "name": "Обмеження струму"
+      },
+      "eveus_chargers_voltage_adaptive": {
+        "name": "Напруга адаптації"
+      }
+    },
+    "select": {
+      "time_zone": {
+        "name": "Часова зона"
+      },
+      "refresh_rate": {
+        "name": "Частота оновлення, сек."
+      }
+    },
+    "switch": {
+      "eveus_chargers_control_pe": {
+        "name": "Контроль заземлення"
+      },
+      "eveus_chargers_restricted_mode": {
+        "name": "Режим 16А"
+      },
+      "eveus_chargers_schedule": {
+        "name": "Заряджати за розкладом"
+      },
+      "eveus_chargers_one_charge": {
+        "name": "Один заряд"
+      },
+      "eveus_chargers_adaptive_mode": {
+        "name": "Адаптивний режим"
+      },
+      "eveus_chargers_charger_enabled": {
+        "name": "Зарядка увімкнена"
+      },
+      "eveus_chargers_suspend_limits": {
+        "name": "Відключити ліміти"
+      }
+    },
+    "button": {
+      "eveus_chargers_time_get": {
+        "name": "Синхронізувати час"
+      },
+      "eveus_chargers_start_now": {
+        "name": "Почати зарядку"
+      }
+    },
+    "time": {
+      "eveus_chargers_start_time": {
+        "name": "Час старту"
+      },
+      "eveus_chargers_stop_time": {
+        "name": "Час завершення"
+      }
+    }
+  },
+  "selector": {
+    "device_type": {
+      "options": {
+        "1_phase": "1-фазна станція",
+        "3_phase": "3-фазна станція"
+      }
+    }
+  }
+}

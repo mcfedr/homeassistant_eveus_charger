@@ -1,7 +1,7 @@
 {
-  "name": "EVSE Energy Star",
+  "name": "Eveus Chargers",
   "content_in_root": false,
-  "domains": ["sensor", "switch", "number", "button", "select"],
+  "domains": ["sensor", "switch", "number", "button", "select", "time"],
   "homeassistant": "2023.0.0",
   "country": "UA",
   "version": "1.2.0",

@@ -1,0 +1,15 @@
+{
+  "domain": "eveus_chargers",
+  "name": "Eveus Chargers",
+  "translation_key": "eveus_chargers",
+  "version": "1.2.0",
+  "documentation": "https://github.com/V-Plum/evse_energy_star",
+  "issue_tracker": "https://github.com/V-Plum/evse_energy_star/issues",
+  "keywords": ["EVSE", "Eveus", "Eveus Pro", "Energy Star Pro", "Home Assistant", "charging"],
+  "dependencies": [],
+  "translations": ["en.json", "uk.json"],
+  "codeowners": ["@V-Plum"],
+  "requirements": [],
+  "iot_class": "local_polling",
+  "config_flow": true
+}

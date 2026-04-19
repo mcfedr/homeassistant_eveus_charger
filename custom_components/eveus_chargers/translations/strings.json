@@ -1,5 +1,5 @@
 {
-  "title": "EVSE Energy Star",
+  "title": "Eveus Chargers",
   "description": "Local integration with the charger via HTTP requests",
   "config": {
     "step": {
@@ -19,8 +19,8 @@
   "options": {
     "step": {
       "init": {
-        "title": "Update EVSE",
-        "description": "Update EVSE configuration",
+        "title": "Update Charger",
+        "description": "Update charger configuration",
         "data": {
           "device_name": "Device name",
           "host": "Charger IP Address",
