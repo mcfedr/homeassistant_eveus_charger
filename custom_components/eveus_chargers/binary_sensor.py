@@ -18,7 +18,7 @@ class EveusGroundSensor(CoordinatorEntity, BinarySensorEntity):
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
     _attr_translation_key = "eveus_chargers_ground_status"
-    _attr_entity_registry_enabled_default = False
+    _attr_entity_registry_enabled_default = True
 
     def __init__(self, coordinator, config_entry: ConfigEntry):
         super().__init__(coordinator)
