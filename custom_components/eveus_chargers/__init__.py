@@ -1,13 +1,13 @@
 import logging
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import ConfigType
 from .coordinator import EveusCoordinator
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "select", "button", "number", "switch", "time"]
+PLATFORMS = ["sensor", "binary_sensor", "select", "button", "number", "switch", "text"]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     host = entry.data.get("host") or entry.options.get("host")
@@ -19,13 +19,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "device_name_slug": coordinator.device_name_slug,
     }
 
-    _LOGGER.info(
-        "__init__.py → Created coordinator for %s (%s), update rate: %s sec",
-        coordinator.device_name,
-        host,
-        entry.options.get("update_rate", 10)
-    )
-
     await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -33,6 +26,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -42,7 +36,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return unload_ok
 
+
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry when options are updated."""
-    _LOGGER.debug("update_listener → reloading integration due to options change")
     await hass.config_entries.async_reload(entry.entry_id)

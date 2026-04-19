@@ -1,16 +1,13 @@
 from homeassistant import config_entries
 import voluptuous as vol
-from .const import DOMAIN
 
 DEVICE_TYPES = {
     "1_phase": "1_phase",
     "3_phase": "3_phase"
 }
 
-class EveusOptionsFlow(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry):
-        self.config_entry = config_entry
 
+class EveusOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
@@ -29,6 +26,3 @@ class EveusOptionsFlow(config_entries.OptionsFlow):
                     DEVICE_TYPES),
             }),
         )
-
-def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-    return EveusOptionsFlow(config_entry)

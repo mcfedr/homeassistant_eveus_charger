@@ -1,5 +1,5 @@
 import logging
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.number import NumberEntity, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -17,7 +17,8 @@ NUMBER_DEFINITIONS = [
         "min": 6,
         "max": 32,
         "step": 1,
-        "unit": "A"
+        "unit": "A",
+        "device_class": NumberDeviceClass.CURRENT,
     },
     {
         "key": "aiVoltage",
@@ -26,9 +27,11 @@ NUMBER_DEFINITIONS = [
         "min": 180,
         "max": 240,
         "step": 1,
-        "unit": "V"
+        "unit": "V",
+        "device_class": NumberDeviceClass.VOLTAGE,
     }
 ]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
@@ -39,27 +42,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ]
     async_add_entities(entities)
 
+
 class EveusNumber(CoordinatorEntity, NumberEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, config):
         super().__init__(coordinator)
-        self.coordinator = coordinator
         self.config_entry = config_entry
         self._host = coordinator.host
         self._key = config["key"]
-        self._translation_key = config["id"]
         self._config = config
-        self._attr_translation_key = self._translation_key
+        self._attr_translation_key = config["id"]
         self._attr_icon = config["icon"]
         self._attr_native_unit_of_measurement = config["unit"]
         self._attr_native_step = config["step"]
         self._attr_native_min_value = config["min"]
-        self._attr_unique_id = f"{self._translation_key}_{config_entry.entry_id}"
+        self._attr_device_class = config.get("device_class")
+        self._attr_unique_id = f"{config['id']}_{config_entry.entry_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
-
-    @property
-    def available(self) -> bool:
-        return self.coordinator.last_update_success
 
     @property
     def native_value(self):

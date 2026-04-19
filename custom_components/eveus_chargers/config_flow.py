@@ -1,22 +1,26 @@
+import logging
+import asyncio
 from homeassistant import config_entries
 import voluptuous as vol
 from .const import DOMAIN
 from .options_flow import EveusOptionsFlow
 from homeassistant.helpers import selector
-from homeassistant.helpers.translation import async_get_translations
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import re
 
+_LOGGER = logging.getLogger(__name__)
+
 DEVICE_TYPES = ["1_phase", "3_phase"]
+
 
 class EveusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Eveus Chargers Config Flow."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     @staticmethod
     def async_get_options_flow(config_entry):
-        return EveusOptionsFlow(config_entry)
+        return EveusOptionsFlow()
 
     async def async_step_user(self, user_input=None):
         errors = {}
@@ -32,18 +36,16 @@ class EveusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["device_name"] = "required"
 
             if not errors:
-                # Get translated title from translations/<lang>.json
-                translations = await async_get_translations(
-                    self.hass,
-                    self.hass.config.language,
-                    "title"
-                )
-                integration_title = translations.get(
-                    f"component.{DOMAIN}.title",
-                    "Eveus Chargers"
-                )
+                try:
+                    session = async_get_clientsession(self.hass)
+                    async with asyncio.timeout(5):
+                        async with session.post(f"http://{host}/main", json={"getState": True}) as resp:
+                            if resp.status != 200:
+                                errors["host"] = "connection"
+                except Exception:
+                    errors["host"] = "connection"
 
-                # Integration title = entered device name
+            if not errors:
                 return self.async_create_entry(
                     title=device_name,
                     data={
@@ -52,7 +54,6 @@ class EveusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "password": user_input.get("password", ""),
                         "device_type": user_input.get("device_type"),
                         "device_name": device_name,
-                        "integration_title": integration_title
                     }
                 )
 

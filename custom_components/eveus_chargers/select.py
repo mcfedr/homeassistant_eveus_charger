@@ -1,17 +1,17 @@
 import logging
-from homeassistant.components.select import SelectEntity
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.components.select import SelectEntityDescription
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 TIMEZONE_OPTIONS = [str(i) for i in range(-12, 13)]
 UPDATE_RATE_OPTIONS = [str(i) for i in [1, 2, 5, 10, 15, 30, 60]]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
@@ -21,41 +21,41 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         UpdateRateSelect(hass, coordinator, entry)
     ])
 
+
 class TimeZoneSelect(CoordinatorEntity, SelectEntity):
+    _attr_has_entity_name = True
+    _attr_translation_key = "time_zone"
+
     def __init__(self, coordinator, config_entry: ConfigEntry):
         super().__init__(coordinator)
-        self.coordinator = coordinator
         self.config_entry = config_entry
-        self._attr_translation_key = "time_zone"
         self.entity_description = SelectEntityDescription(
             key="time_zone",
             translation_key="time_zone",
             icon="mdi:map-clock-outline"
         )
-        self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
-
         self._attr_unique_id = f"time_zone_{config_entry.entry_id}"
         self._attr_options = TIMEZONE_OPTIONS
-        self._attr_current_option = None
 
+    @property
+    def current_option(self) -> str | None:
         raw = self.coordinator.data.get("timeZone", "0")
         try:
-            tz_int = int(float(str(raw).strip()))
-            tz_str = str(tz_int)
-        except Exception:
-            tz_str = "0"
-
-        if tz_str in self._attr_options:
-            self._attr_current_option = tz_str
-            _LOGGER.debug("select.py → timeZone from /init: %s (%s)", tz_str, type(raw).__name__)
-        else:
-            self._attr_current_option = None
-            _LOGGER.warning("select.py → invalid timeZone value from /init: '%s'", raw)
+            tz_str = str(int(float(str(raw).strip())))
+        except (ValueError, TypeError):
+            return None
+        return tz_str if tz_str in TIMEZONE_OPTIONS else None
 
     async def async_select_option(self, option: str):
+        data = self.coordinator.data
+        payload = (
+            f"isAlarm={str(data.get('isAlarm', 'false')).lower()}&"
+            f"startTime={data.get('startTime', 'None')}&"
+            f"stopTime={data.get('stopTime', 'None')}&"
+            f"timeZone={option}"
+        )
         session = async_get_clientsession(self.coordinator.hass)
-        payload = f"isAlarm=false&startTime=None&stopTime=None&timeZone={option}"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
         try:
@@ -64,36 +64,30 @@ class TimeZoneSelect(CoordinatorEntity, SelectEntity):
                 data=payload,
                 headers=headers
             )
-            self._attr_current_option = option
             await self.coordinator.async_request_refresh()
-            self.async_write_ha_state()
-            _LOGGER.debug("select.py → timeZone changed to %s via /timer", option)
         except Exception as err:
             _LOGGER.error("select.py → /timer request error: timeZone=%s → %s", option, repr(err))
-
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
 
     @property
     def device_info(self):
         return self.coordinator.device_info
 
+
 class UpdateRateSelect(SelectEntity):
+    _attr_has_entity_name = True
+    _attr_translation_key = "refresh_rate"
+
     def __init__(self, hass: HomeAssistant, coordinator, config_entry: ConfigEntry):
         super().__init__()
         self.hass = hass
         self.coordinator = coordinator
         self.config_entry = config_entry
-        self._attr_translation_key = "refresh_rate"
         self.entity_description = SelectEntityDescription(
             key="refresh_rate",
             translation_key="refresh_rate",
             icon="mdi:history"
         )
-        self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
-
         self._attr_unique_id = f"refresh_rate_{config_entry.entry_id}"
         self._attr_options = UPDATE_RATE_OPTIONS
         self._attr_current_option = str(config_entry.options.get("update_rate", 10))
@@ -106,7 +100,6 @@ class UpdateRateSelect(SelectEntity):
             )
             self._attr_current_option = option
             self.async_write_ha_state()
-            _LOGGER.info("select.py → update_rate changed to %s sec", option)
         except Exception as err:
             _LOGGER.error("select.py → error writing update_rate=%s → %s", option, repr(err))
 

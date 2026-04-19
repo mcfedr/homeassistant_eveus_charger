@@ -69,9 +69,6 @@
           "unknown": "Unknown"
         }
       },
-      "eveus_chargers_current_set": {
-        "name": "Set Current"
-      },
       "eveus_chargers_current_phase_1": {
         "name": "Phase 1 Current"
       },
@@ -105,9 +102,6 @@
       "eveus_chargers_battery_voltage": {
         "name": "Battery Voltage"
       },
-      "eveus_chargers_ground_status": {
-        "name": "Ground Status"
-      },
       "eveus_chargers_car_connected": {
         "name": "Car Connected",
         "state": {
@@ -127,6 +121,11 @@
       },
       "eveus_chargers_voltage_phase_3": {
         "name": "Phase 3 Voltage"
+      }
+    },
+    "binary_sensor": {
+      "eveus_chargers_ground_status": {
+        "name": "Ground Connected"
       }
     },
     "number": {
@@ -176,7 +175,7 @@
         "name": "Start Charging"
       }
     },
-    "time": {
+    "text": {
       "eveus_chargers_start_time": {
         "name": "Start Time"
       },

@@ -2,6 +2,7 @@ import logging
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import DOMAIN
 
@@ -11,6 +12,7 @@ SWITCH_DEFINITIONS = [
     ("groundCtrl", "eveus_chargers_control_pe"),
     ("restrictedMode", "eveus_chargers_restricted_mode"),
 ]
+
 
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
@@ -28,9 +30,10 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities: AddEnt
 
     async_add_entities(entities)
 
-class EveusSwitch(SwitchEntity):
+
+class EveusSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, key, translation_key):
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self.config_entry = config_entry
         self._host = coordinator.host
         self._key = key
@@ -38,10 +41,6 @@ class EveusSwitch(SwitchEntity):
         self._attr_unique_id = f"{translation_key}_{config_entry.entry_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
-
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
 
     @property
     def is_on(self):
@@ -90,19 +89,16 @@ class EveusSwitch(SwitchEntity):
     def device_info(self):
         return self.coordinator.device_info
 
-class EveusScheduleSwitch(SwitchEntity):
+
+class EveusScheduleSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry):
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self.config_entry = config_entry
         self._host = coordinator.host
         self._attr_translation_key = "eveus_chargers_schedule"
         self._attr_unique_id = f"schedule_{config_entry.entry_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
-
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
 
     @property
     def is_on(self):
@@ -140,9 +136,10 @@ class EveusScheduleSwitch(SwitchEntity):
     def device_info(self):
         return self.coordinator.device_info
 
-class EveusSimpleSwitch(SwitchEntity):
+
+class EveusSimpleSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, key, translation_key, *, state_key=None, inverted=False, enabled_default=True):
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self.config_entry = config_entry
         self._host = coordinator.host
         self._key = key
@@ -153,10 +150,6 @@ class EveusSimpleSwitch(SwitchEntity):
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{self.coordinator.device_name_slug}_{self._attr_translation_key}"
         self._attr_entity_registry_enabled_default = enabled_default
-
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
 
     @property
     def is_on(self):
@@ -171,7 +164,6 @@ class EveusSimpleSwitch(SwitchEntity):
         await self._send(False)
 
     async def _send(self, state: bool):
-        # For inverted switches, flip the value sent to the device
         device_state = not state if self._inverted else state
         payload = f"{self._key}={'1' if device_state else '0'}"
         headers = {

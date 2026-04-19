@@ -69,9 +69,6 @@
           "unknown": "Невідомо"
         }
       },
-      "eveus_chargers_current_set": {
-        "name": "Струм (встановлений)"
-      },
       "eveus_chargers_current_phase_1": {
         "name": "Струм фаза 1"
       },
@@ -105,9 +102,6 @@
       "eveus_chargers_battery_voltage": {
         "name": "Напруга батареї"
       },
-      "eveus_chargers_ground_status": {
-        "name": "Заземлення"
-      },
       "eveus_chargers_car_connected": {
         "name": "Підключення до авто",
         "state": {
@@ -127,6 +121,11 @@
       },
       "eveus_chargers_voltage_phase_3": {
         "name": "Напруга фаза 3"
+      }
+    },
+    "binary_sensor": {
+      "eveus_chargers_ground_status": {
+        "name": "Заземлення"
       }
     },
     "number": {
@@ -176,7 +175,7 @@
         "name": "Почати зарядку"
       }
     },
-    "time": {
+    "text": {
       "eveus_chargers_start_time": {
         "name": "Час старту"
       },

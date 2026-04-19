@@ -10,24 +10,24 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    device_name_slug = hass.data[DOMAIN][entry.entry_id]["device_name_slug"]
+    slug = coordinator.device_name_slug
 
     async_add_entities([
-        SyncTimeButton(coordinator, entry, device_name_slug),
-        ChargeNowButton(coordinator, entry, device_name_slug)
+        SyncTimeButton(coordinator, entry, slug),
+        ChargeNowButton(coordinator, entry, slug)
     ])
+
 
 class SyncTimeButton(CoordinatorEntity, ButtonEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, slug: str):
         super().__init__(coordinator)
-        self.coordinator = coordinator
         self.config_entry = config_entry
         self._attr_translation_key = "eveus_chargers_time_get"
         self._attr_unique_id = f"time_get_{config_entry.entry_id}"
         self._attr_icon = "mdi:clock-check-outline"
-        self._attr_should_poll = False
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{slug}_{self._attr_translation_key}"
 
@@ -42,7 +42,6 @@ class SyncTimeButton(CoordinatorEntity, ButtonEntity):
 
             local_ts = int(datetime.now().timestamp())
             system_time = local_ts + tz * 3600
-            _LOGGER.debug("button.py → Time sync: systemTime=%s", system_time)
 
             session = async_get_clientsession(self.coordinator.hass)
             await session.post(
@@ -55,22 +54,17 @@ class SyncTimeButton(CoordinatorEntity, ButtonEntity):
             _LOGGER.error("button.py → time sync error: %s", repr(err))
 
     @property
-    def available(self):
-        return self.coordinator.last_update_success
-
-    @property
     def device_info(self):
         return self.coordinator.device_info
+
 
 class ChargeNowButton(CoordinatorEntity, ButtonEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, slug: str):
         super().__init__(coordinator)
-        self.coordinator = coordinator
         self.config_entry = config_entry
         self._attr_translation_key = "eveus_chargers_start_now"
         self._attr_unique_id = f"start_now_{config_entry.entry_id}"
         self._attr_icon = "mdi:battery-charging-high"
-        self._attr_should_poll = False
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{slug}_{self._attr_translation_key}"
 
@@ -106,7 +100,6 @@ class ChargeNowButton(CoordinatorEntity, ButtonEntity):
                 data=payload_timer,
                 headers={"Content-Type": "application/x-www-form-urlencoded"}
             )
-            _LOGGER.debug("chargeNow → /timer: %s", payload_timer)
 
             await session.post(
                 f"http://{self.coordinator.host}/pageEvent",
@@ -124,14 +117,8 @@ class ChargeNowButton(CoordinatorEntity, ButtonEntity):
                 headers={"Content-Type": "application/x-www-form-urlencoded"}
             )
 
-            _LOGGER.debug("chargeNow → Charging activated")
-
         except Exception as err:
             _LOGGER.error("chargeNow → request error: %s", repr(err))
-
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
 
     @property
     def device_info(self):

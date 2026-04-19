@@ -34,7 +34,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class EveusTimeField(CoordinatorEntity, TextEntity):
     def __init__(self, coordinator, config_entry: ConfigEntry, description: TextEntityDescription):
         super().__init__(coordinator)
-        self.coordinator = coordinator
         self.config_entry = config_entry
         self.entity_description = description
         self._key = description.key
