@@ -1,7 +1,6 @@
 {
   "name": "Eveus Chargers",
   "content_in_root": false,
-  "domains": ["sensor", "binary_sensor", "switch", "number", "button", "select", "text"],
   "homeassistant": "2023.0.0",
   "country": "UA"
 }
