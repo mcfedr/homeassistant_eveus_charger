@@ -12,7 +12,7 @@ There is no build system, test suite, or CI/CD. The integration is pure Python w
 
 **To test changes:** Copy `custom_components/eveus_chargers/` into a Home Assistant instance's `config/custom_components/` directory and restart HA (or reload the integration).
 
-**Installation via HACS:** Add `https://github.com/V-Plum/evse_energy_star` as a custom repository (type: Integration).
+**Installation via HACS:** Add `https://github.com/mcfedr/homeassistant_eveus_charger` as a custom repository (type: Integration).
 
 ## Architecture
 
