@@ -1,7 +1,9 @@
 {
   "domain": "eveus_chargers",
   "name": "Eveus Chargers",
-  "codeowners": ["@V-Plum"],
+  "codeowners": [
+    "@V-Plum"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/V-Plum/evse_energy_star",
@@ -9,5 +11,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/V-Plum/evse_energy_star/issues",
   "requirements": [],
-  "version": "1.2.0"
+  "version": "1.2.1"
 }
