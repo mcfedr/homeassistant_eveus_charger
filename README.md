@@ -32,7 +32,7 @@ Home Assistant integration for local control of **Energy Star Pro** and **Eveus 
 1. Open HACS -> "Integrations" -> "Custom repositories"
 2. Add repository:
    ```
-   https://github.com/V-Plum/evse_energy_star
+   https://github.com/mcfedr/homeassistant_eveus_charger
    ```
 3. Select category: `Integration`
 4. Install the integration
@@ -137,7 +137,7 @@ Three-phase devices add: Phase 2/3 Current and Phase 2/3 Voltage.
 
 ## Acknowledgments
 
-Original integration by **[@V-Plum](https://github.com/V-Plum/evse_energy_star)**.
+Original integration by **[@V-Plum](https://github.com/V-Plum)**.
 Improvements informed by the fork by **[@d-primikirio](https://github.com/d-primikirio/eveus_hacs)**.
 
 Pull requests, issues, and stars are welcome!

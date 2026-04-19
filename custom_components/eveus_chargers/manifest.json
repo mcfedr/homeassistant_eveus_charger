@@ -2,14 +2,14 @@
   "domain": "eveus_chargers",
   "name": "Eveus Chargers",
   "codeowners": [
-    "@V-Plum"
+    "@mcfedr"
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/V-Plum/evse_energy_star",
+  "documentation": "https://github.com/mcfedr/homeassistant_eveus_charger",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/V-Plum/evse_energy_star/issues",
+  "issue_tracker": "https://github.com/mcfedr/homeassistant_eveus_charger/issues",
   "requirements": [],
   "version": "1.2.1"
 }
