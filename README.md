@@ -2,7 +2,7 @@
 
 Home Assistant integration for local control of **Energy Star Pro** and **Eveus Pro** EV charging stations via their built-in web interface (JSON API).
 
-![Logo](brand/icon.png)
+![Logo](custom_components/eveus_chargers/brand/icon.png)
 
 ---
 

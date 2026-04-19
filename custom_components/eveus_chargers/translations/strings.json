@@ -1,6 +1,4 @@
 {
-  "title": "Eveus Chargers",
-  "description": "Local integration with the charger via HTTP requests",
   "config": {
     "step": {
       "user": {
